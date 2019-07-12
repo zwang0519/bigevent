@@ -19,7 +19,7 @@
         <div class="row spannel_list">
             <div class="col-sm-3 col-xs-6">
                 <div class="spannel">
-                    <em>10015</em><span>篇</span>
+                    <em id="totality">10015</em><span>篇</span>
                     <b>总文章数</b>
                 </div>
             </div>
@@ -344,7 +344,28 @@
             oColumn.setOption(oColumnopt);
 
     </script>
-
+    <script>
+    //每日的总文章数
+    $.get({
+        url:"http://localhost:8000/admin/article_count",
+        success:function(res){
+            if(res.code == 200){
+            $('#totality').text(res.data.all_count);
+            $('.scolor01 em').text(res.data.day_count)
+            }
+        }
+    })
+    $.get({
+        url:"http://localhost:8000/admin/comment_count",
+        success:function (res) {
+            if(res.code == 200){
+                $('.scolor02 em').text(res.data.all_count);
+                $('.scolor03 em').text(res.data.day_count);
+            }
+            
+          }
+    })
+    </script>
 
 </body>
 

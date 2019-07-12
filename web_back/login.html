@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/iconfont.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="./js/bootstrap/css/bootstrap.min.css">
 </head>
 
 <body>
@@ -28,8 +29,60 @@
                 <input type="submit" class="input_sub" value="登 录">
             </form>
         </div>
+    </div>
+    <!--模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                  <h4 class="modal-title" id="myModalLabel">提示</h4>
+                </div>
+                <div class="modal-body">
+    
+            </div>
+          </div>
+    <script src="./js/jquery-1.12.4.min.js"></script>
+    <script src="./js/bootstrap/js/bootstrap.min.js"></script>      
 
-    </div> 
+    <script>
+        $(function () {
+            $('.input_sub').on('click', function (e) {
+                e.preventDefault();
+                var userName = $('.input_txt').val();
+                var password = $('.input_pass').val();
+                if (userName == '' || password == '') {
+                    // alert('账号密码不能输入为空')    
+                    $('.modal-body').text('账号或者密码为空!');
+                    $('#myModal').modal({
+                        keyboard: true //键盘上的 esc 键被按下时关闭模态框
+                    })
+                    return;
+                }
+                $.post({
+                    url: "http://localhost:8000/admin/login",
+                    data: {
+                        user_name: userName,
+                        password: password
+                    },
+                    success: function (res) {
+                        if (res.code == 200) {
+                            window.location.href = './index.html'
+                        } else {
+                            $('.modal-body').text('账号或者密码输入错误');
+                        }
+                    }
+                })
+            })
+            $('.input_sub').keydown(function (e) {
+
+                if (e.keyCode == 13) {
+
+                    $('.input_sub').trigger('click');
+                }
+            });
+        })
+    </script>
 
 </body>
 
