@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="./js/bootstrap/js/bootstrap.min.js"></script>
+    <script src="./js/jquery.twbsPagination.min.js"></script>
 </head>
 
 <body>
@@ -23,16 +25,16 @@
                 <div class="col-xs-6">
                     <form class="form-inline">
                         <select id="selCategory" name="" class="form-control input-sm">
-                            <option>所有分类</option>
+                            <option value="">所有分类</option>
                             <option>未分类</option>
                             <option>奇趣事</option>
                             <option>会生活</option>
                             <option>爱旅行</option>
                         </select>
                         <select id="selStatus" name="" class="form-control input-sm">
-                            <option>所有状态</option>
-                            <option value="drafted">草稿</option>
-                            <option value="published">已发布</option>
+                            <option value="">所有状态</option>
+                            <option>草稿</option>
+                            <option>已发布</option>
                         </select>
                         <button id="btnSearch" class="btn btn-default btn-sm">筛选</button>
                     </form>
@@ -289,6 +291,21 @@
         <option value="{{$value.id}}">{{$value.name}}</option>
         {{/each}}
     </script>
+    <script type="text/html" id="art_list">
+        {{each data v}}
+        <tr>
+            <td>{{v.title}}</td>
+            <td>{{v.author}}</td>
+            <td>{{v.type}}</td>
+            <td class="text-center">{{v.data}}</td>
+            <td class="text-center">{{v.state}}</td>
+            <td class="text-center">
+                <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+                <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
     <script>
         // 设置左侧菜单
         $('#release_btn').click(function () {
@@ -296,32 +313,85 @@
         })
     </script>
     <script>
-        $.get({
-            url:'http://localhost:8000/admin/category_search',
-            success: function (res) {
-                // console.log(res);
-                
-                var html =template('art_cate',res)
-                $('#selCategory').html(html)
+        $(function () {
+            $.get({
+                url: 'http://localhost:8000/admin/category_search',
+                success: function (res) {
+                    // console.log(res);
+                    var html = template('art_cate', res)
+                    $('#selCategory').html(html)
 
-            }
-        })
-        
-        var category = $('#selCategory').val();
-        var selStatus = $('#selStatus').val();
-        $.ajax({
-            url:"http://localhost:8000/admin/search",
-            data:{
-                type:category,
-                state:selStatus,
-                page: myPage,
-                perpage: 6,
-            },
-            success:function(res){
+                }
+            })
+            var mapage = 10;
+            //分页插件
+            var $pagination = $('.pagination');
+            var defaultOpts = {
+                totalPages: mapage, //最大的页签数
+                visiblePages: 5, //可见的页签数
+                first: '首页',
+                last: '尾页',
+                prev: "上一页",
+                next: "下一页",
+                onPageClick: function (event, page) { //点击页签回调函数.
+                    //console.log(event);//点击时候触发的事件对象
+                    //console.log(page); //点击的页码
+                    //调用getData();
+                    getData(page);
+                }
+            };
+            $pagination.twbsPagination(defaultOpts);
 
+
+            function getData(page) {
+
+                var category = $('#selCategory').val();//文章类别ID
+                var selStatus = $('#selStatus').val();//文章状态
+                $.ajax({
+                    url: "http://localhost:8000/admin/search",
+                    data: {
+                        type: category,
+                        state: selStatus,
+                        page: page,
+                        perpage: 6,
+                    },
+                    success: function (res) {
+                        if (res.code == 200) {
+                            var resHtml = template('art_list', res)
+                            $('tbody').html(resHtml);
+                            console.log(res);
+                            var totalPages = res.totalPage;
+                            if (mapage != totalPages) {
+                                //backData是ajax发送请求返回的数据,  totalPage是这个返回的数据里面的总页数
+                                 //获取真实的总页码数.
+                                mapage = totalPages;
+                                var currentPage = $pagination.twbsPagination('getCurrentPage');
+                                //有一个问题,就是分页插件调用destroy方法的时候,会自动的去调用onPageClick事件.所以就无限循环了.
+                                $pagination.twbsPagination('destroy');
+                                $pagination.twbsPagination($.extend({}, defaultOpts, {
+                                    startPage: 1,
+                                    totalPages: totalPages
+                                }));
+                            }
+
+                        }
+
+                    }
+                })
             }
+
+            $('#btnSearch').click(function (e) {
+                e.preventDefault();
+                getData(1);
+            });
+            //页面打开就显示所有文章
+            // $('#btnSearch').trigger('click');
+
+
+
         })
-        
+
+
     </script>
 </body>
 
