@@ -167,7 +167,7 @@
 
                         <td class="text-center">
                             <a href="post-edit.html?id=1000" class="btn btn-default btn-xs">编辑</a>
-                            <a href="javascript:deleteTr( 1000 );" class="btn btn-danger btn-xs">删除</a>
+                            <a href="javascript:deleteTr( 1000 );" class="btn btn-danger btn-xs btn-del">删除</a>
                         </td>
                     </tr>
 
@@ -279,7 +279,7 @@
             <td class="text-center">{{v.date}}</td>
             <td class="text-center">{{v.state}}</td>
             <td class="text-center">
-                <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+                <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs">编辑</a>
                 <a href="#" data-id="{{v.id}}" class="btn btn-danger btn-xs">删除</a>
             </td>
         </tr>
@@ -300,8 +300,8 @@
             <td class="text-center">{{v.data}}</td>
             <td class="text-center">{{v.state}}</td>
             <td class="text-center">
-                <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
-                <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs">删除</a>
+                <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs">编辑</a>
+                <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs btn-del">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -344,7 +344,6 @@
 
 
             function getData(page) {
-
                 var category = $('#selCategory').val();//文章类别ID
                 var selStatus = $('#selStatus').val();//文章状态
                 $.ajax({
@@ -356,16 +355,20 @@
                         perpage: 6,
                     },
                     success: function (res) {
+                        console.log(res);
+                        
                         if (res.code == 200) {
                             var resHtml = template('art_list', res)
                             $('tbody').html(resHtml);
-                            console.log(res);
+                            // console.log(res);
                             var totalPages = res.totalPage;
+                            //获取当前页码
+                            window.currentPage = $pagination.twbsPagination('getCurrentPage');
                             if (mapage != totalPages) {
                                 //backData是ajax发送请求返回的数据,  totalPage是这个返回的数据里面的总页数
                                  //获取真实的总页码数.
                                 mapage = totalPages;
-                                var currentPage = $pagination.twbsPagination('getCurrentPage');
+                                
                                 //有一个问题,就是分页插件调用destroy方法的时候,会自动的去调用onPageClick事件.所以就无限循环了.
                                 $pagination.twbsPagination('destroy');
                                 $pagination.twbsPagination($.extend({}, defaultOpts, {
@@ -384,9 +387,31 @@
                 e.preventDefault();
                 getData(1);
             });
-            //页面打开就显示所有文章
-            // $('#btnSearch').trigger('click');
 
+            //删除文章
+            $('tbody').on('click','.btn-del',function(){
+                
+                if(confirm('确定要删除?')){
+                    var id = $(this).attr('data-id');
+                    $.ajax({
+                        url:"http://localhost:8000/admin/article_delete",
+                        data:{
+                            id:id
+                        },
+                        success:function(res){
+                            if(res.code ==200){
+                                alert(res.msg)
+                                getData(currentPage)
+                                // console.log(currentPage);
+                                
+                            }
+
+                        }
+                    })
+                    
+                    
+                }
+            })
 
 
         })
